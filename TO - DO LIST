@@ -1,0 +1,99 @@
+import json
+from datetime import datetime
+
+# File to store tasks
+TASKS_FILE = "tasks.json"
+
+# Load tasks from file
+def load_tasks():
+    try:
+        with open(TASKS_FILE, "r") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+# Save tasks to file
+def save_tasks(tasks):
+    with open(TASKS_FILE, "w") as file:
+        json.dump(tasks, file, indent=4)
+
+# Display all tasks
+def display_tasks(tasks):
+    if not tasks:
+        print("\nNo tasks found!")
+    else:
+        print("\nTasks:")
+        for i, task in enumerate(tasks, start=1):
+            status = "✔" if task["completed"] else "✘"
+            due_date = f"(Due: {task['due_date']})" if task["due_date"] else ""
+            print(f"{i}. [{status}] {task['title']} {due_date}")
+
+# Add a new task
+def add_task(tasks):
+    title = input("Enter task title: ").strip()
+    due_date = input("Enter due date (YYYY-MM-DD, optional): ").strip()
+
+    if due_date:
+        try:
+            datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            print("Invalid date format! Skipping due date.")
+            due_date = None
+
+    tasks.append({"title": title, "completed": False, "due_date": due_date})
+    print("Task added successfully!")
+
+# Mark a task as completed
+def complete_task(tasks):
+    display_tasks(tasks)
+    try:
+        task_num = int(input("Enter task number to mark as completed: "))
+        tasks[task_num - 1]["completed"] = True
+        print("Task marked as completed!")
+    except (ValueError, IndexError):
+        print("Invalid task number!")
+
+# Delete a task
+def delete_task(tasks):
+    display_tasks(tasks)
+    try:
+        task_num = int(input("Enter task number to delete: "))
+        tasks.pop(task_num - 1)
+        print("Task deleted!")
+    except (ValueError, IndexError):
+        print("Invalid task number!")
+
+# Main menu
+def main():
+    tasks = load_tasks()
+
+    while True:
+        print("\nTo-Do List Menu:")
+        print("1. View tasks")
+        print("2. Add a task")
+        print("3. Complete a task")
+        print("4. Delete a task")
+        print("5. Exit")
+
+        choice = input("Choose an option: ").strip()
+
+        if choice == "1":
+            display_tasks(tasks)
+        elif choice == "2":
+            add_task(tasks)
+            save_tasks(tasks)
+        elif choice == "3":
+            complete_task(tasks)
+            save_tasks(tasks)
+        elif choice == "4":
+            delete_task(tasks)
+            save_tasks(tasks)
+        elif choice == "5":
+            save_tasks(tasks)
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice! Please try again.")
+
+if __name__ == "__main__":
+    main()
